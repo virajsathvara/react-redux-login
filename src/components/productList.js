@@ -1,9 +1,34 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { search_products, sort_by_qty, sort_by_price } from '../actions';
 
 const ProductList = () => {
 
   const { products } = useSelector(state => state);
+  const [search, setSearch] = useState("");
+  const [toggleResults, setToggleResults] = useState(false);
+  const [qtySort, setQtySort] = useState("DSC");
+  const [priceSort, setPriceSort] = useState("DSC");
+  const dispatch = useDispatch();
+  const productsToShow = toggleResults ? products.filtered : products.all;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(search_products(products.all, search));
+    setToggleResults(true);
+  };
+
+  const handleQuantitySort = () => {
+    const type = (qtySort === "DSC") ? "ASC" : "DSC";
+    setQtySort(type);
+    dispatch(sort_by_qty(productsToShow, type));
+  };
+
+  const handlePriceSort = () => {
+    const type = (priceSort === "DSC") ? "ASC" : "DSC";
+    setPriceSort(type);
+    dispatch(sort_by_price(productsToShow, type));
+  };
 
   return (
     <div className="container-fluid">
@@ -16,6 +41,15 @@ const ProductList = () => {
                 <div className="col-md-2">
                   <a className="btn btn-primary btn-round" href="/addproduct"> Add Product </a>
                 </div>
+                <form className="form-inline ml-auto mr-auto" onSubmit={handleSubmit}>
+                  <div className="form-group">
+                    <input type="text" className="form-control" placeholder="Search" value={search} onChange={(e) => setSearch
+                      (e.target.value)} />
+                  </div>
+                  <button type="submit" className="btn btn-white btn-raised btn-fab btn-round">
+                    <i className="material-icons">search</i>
+                  </button>
+                </form>
               </div>
             </div>
             <div className="card-body">
@@ -33,30 +67,46 @@ const ProductList = () => {
                         DESCRIPTION
                         </th>
                       <th>
+                        <div className="row" style={{ alignItems: "center" }}>
+                          <button className="btn btn-fab btn-round" onClick={handleQuantitySort}>
+                            {(qtySort === "ASC") ?
+                              <i className="material-icons">arrow_circle_up</i> :
+                              <i className="material-icons">arrow_circle_down</i>}
+                          </button>
                         QTY
-                        </th>
+                        </div>
+                      </th>
                       <th>
-                        PRICE
-                        </th>
+                        <div className="row" style={{ alignItems: "center" }}>
+                          <button className="btn btn-fab btn-round" onClick={handlePriceSort}>
+                            {(priceSort === "ASC") ?
+                              <i className="material-icons">arrow_circle_up</i> :
+                              <i className="material-icons">arrow_circle_down</i>}
+                          </button>
+                          PRICE
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {
-                      products.map((product, i) => {
+                      productsToShow.map((product, i) => {
                         return <tr key={i}>
                           <td>
                             {i}
                           </td>
-                          <td className="row" style={{ alignItems: "center" }}>
-                            <div className="profile-photo-small">
-                              <img src={product.image} alt={product.name} className="rounded-circle img-fluid" />
-                            </div>
-                            <div className="col-md-8">
-                              {product.name}
+                          <td>
+                            <div className="row" style={{ alignItems: "center" }}>
+                              <div className="profile-photo-small">
+                                <img src={product.image} alt={product.name} className="rounded-circle img-fluid" />
+                              </div>
+                              <div className="col-md-8">
+                                {product.name}
+                              </div>
                             </div>
                           </td>
                           <td>
-                            {product.description}
+                            {product.description.substring(0, 30)}...
                           </td>
                           <td>
                             {product.quantity}
